@@ -1,0 +1,1244 @@
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghogart - Finanzas del Hogar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.8s ease-out;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .progress-bar {
+      transition: width 1s ease-in-out;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .transactions-modal {
+      max-height: 80vh;
+      overflow-y: auto;
+      max-width: 800px;
+    }
+    
+    .transaction-item {
+      transition: background-color 0.2s;
+    }
+    
+    .transaction-item:hover {
+      background-color: #f9fafb;
+    }
+    
+    .filter-active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    
+    .transactions-header {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+      padding: 1rem 0;
+    }
+    
+    .history-modal {
+      max-height: 80vh;
+      overflow-y: auto;
+      max-width: 900px;
+    }
+    
+    .month-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .month-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .history-header {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+      padding: 1rem 0;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+  <div id="app-container">
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4 gradient-bg">
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-white opacity-10 rounded-full animate-float"></div>
+        <div class="absolute top-1/3 right-1/4 w-48 h-48 bg-green-300 opacity-15 rounded-full animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-1/4 left-1/3 w-56 h-56 bg-blue-300 opacity-15 rounded-full animate-float" style="animation-delay: 4s;"></div>
+      </div>
+
+      <div class="relative z-10 bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-piggy-bank text-white text-3xl"></i>
+          </div>
+          <h1 class="text-3xl font-bold text-gray-800">💰 Ghogart</h1>
+          <p class="text-gray-600 mt-2">Control inteligente de finanzas del hogar</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Usuario</label>
+            <input type="text" id="usuario" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                   placeholder="Ingresa tu usuario" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
+            <input type="password" id="clave" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                   placeholder="Ingresa tu contraseña" required>
+          </div>
+
+          <button type="submit" 
+                  class="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-blue-700 transition transform hover:scale-105">
+            <i class="fas fa-sign-in-alt mr-2"></i>Ingresar
+          </button>
+
+          <div id="errorMsg" class="text-red-500 text-sm text-center mt-4 hidden">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            <span>Usuario o contraseña incorrectos</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="main-page" class="hidden min-h-screen bg-gray-50">
+      <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center">
+              <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-piggy-bank text-white"></i>
+              </div>
+              <h1 class="text-2xl font-bold text-gray-800">Ghogart</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+              <span class="text-gray-700">Hola, <span id="user-name">Usuario</span></span>
+              <button id="viewHistoryBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-history mr-2"></i>Historial
+              </button>
+              <button id="newMonthBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-calendar-plus mr-2"></i>Nuevo Mes
+              </button>
+              <button id="addIncomeBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-plus-circle mr-2"></i>Ingreso
+              </button>
+              <button id="addExpenseBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-minus-circle mr-2"></i>Gasto
+              </button>
+              <button id="logoutBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>Salir
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-2xl shadow-md p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                  <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
+                </div>
+                <div>
+                  <p class="text-gray-600">Ingresos Mensuales</p>
+                  <p class="text-2xl font-bold text-gray-800" id="total-income">0cop</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-md p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <i class="fas fa-shopping-cart text-red-600 text-xl"></i>
+                </div>
+                <div>
+                  <p class="text-gray-600">Gastos Mensuales</p>
+                  <p class="text-2xl font-bold text-gray-800" id="total-expenses">0cop</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-md p-6 card-hover">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+              </div>
+              <div>
+                <p class="text-gray-600">Balance Actual</p>
+                <p class="text-2xl font-bold text-green-600" id="balance">0cop</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button id="resetBalanceBtn" class="reset-button w-full">
+                <i class="fas fa-undo-alt mr-2"></i>Reiniciar Balance
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div class="bg-white rounded-2xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Distribución de Gastos</h2>
+            <div class="flex items-center mb-4">
+              <div class="w-5 h-5 bg-[#FF6384] rounded-full mr-2"></div>
+              <span class="text-sm mr-4">Alimentación</span>
+              <div class="w-5 h-5 bg-[#36A2EB] rounded-full mr-2"></div>
+              <span class="text-sm mr-4">Servicios</span>
+              <div class="w-5 h-5 bg-[#FFCE56] rounded-full mr-2"></div>
+              <span class="text-sm mr-4">Transporte</span>
+            </div>
+            <div class="flex items-center mb-6">
+              <div class="w-5 h-5 bg-[#4BC0C0] rounded-full mr-2"></div>
+              <span class="text-sm mr-4">Entretenimiento</span>
+              <div class="w-5 h-5 bg-[#9966FF] rounded-full mr-2"></div>
+              <span class="text-sm">Otros</span>
+            </div>
+            <canvas id="expensesChart" width="400" height="250"></canvas>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-semibold text-gray-800">Últimos Movimientos</h2>
+              <button id="viewAllTransactions" class="text-blue-500 text-sm hover:underline">Ver todos</button>
+            </div>
+            <div class="space-y-4" id="transactions-list">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md p-6 mb-8">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Metas de Ahorro</h2>
+            <button id="addGoalBtn" class="border-2 border-dashed border-green-500 text-green-500 hover:bg-green-50 px-4 py-2 rounded-lg transition">
+              <i class="fas fa-plus mr-2"></i>Nueva Meta
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="goals-list">
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="incomeModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Registrar Ingreso</h3>
+        <span class="close-modal cursor-pointer text-xl" data-modal="incomeModal">&times;</span>
+      </div>
+      <form id="incomeForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <input type="text" id="income-description" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monto (COP)</label>
+            <input type="number" id="income-amount" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" class="close-modal px-4 py-2 text-gray-700 rounded-lg border border-gray-300" data-modal="incomeModal">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg">Agregar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="expenseModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Registrar Gasto</h3>
+        <span class="close-modal cursor-pointer text-xl" data-modal="expenseModal">&times;</span>
+      </div>
+      <form id="expenseForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            <input type="text" id="expense-description" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monto (COP)</label>
+            <input type="number" id="expense-amount" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+            <select id="expense-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+              <option value="Alimentación">🍕 Alimentación</option>
+              <option value="Servicios">⚡ Servicios</option>
+              <option value="Transporte">🚌 Transporte</option>
+              <option value="Entretenimiento">🎮 Entretenimiento</option>
+              <option value="Otros">📦 Otros</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" class="close-modal px-4 py-2 text-gray-700 rounded-lg border border-gray-300" data-modal="expenseModal">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg">Agregar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="goalModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Nueva Meta de Ahorro</h3>
+        <span class="close-modal cursor-pointer text-xl" data-modal="goalModal">&times;</span>
+      </div>
+      <form id="goalForm">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la meta</label>
+            <input type="text" id="goal-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monto objetivo (COP)</label>
+            <input type="number" id="goal-target" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Monto actual (COP)</label>
+            <input type="number" id="goal-current" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" class="close-modal px-4 py-2 text-gray-700 rounded-lg border border-gray-300" data-modal="goalModal">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Agregar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="transactionsModal" class="modal">
+    <div class="modal-content transactions-modal">
+      <div class="flex justify-between items-center mb-4 transactions-header">
+        <h3 class="text-lg font-semibold">Todas las Transacciones</h3>
+        <span class="close-modal cursor-pointer text-xl" data-modal="transactionsModal">&times;</span>
+      </div>
+      
+      <div class="mb-6 transactions-header">
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button class="filter-btn px-3 py-1 rounded-full text-sm border border-gray-300 filter-active" data-filter="all">
+            Todas
+          </button>
+          <button class="filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-filter="income">
+            <i class="fas fa-arrow-up text-green-500 mr-1"></i> Ingresos
+          </button>
+          <button class="filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-filter="expense">
+            <i class="fas fa-arrow-down text-red-500 mr-1"></i> Gastos
+          </button>
+        </div>
+        
+        <div class="flex flex-wrap gap-2">
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="all">
+            Todas
+          </button>
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="Alimentación">
+            🍕 Alimentación
+          </button>
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="Servicios">
+            ⚡ Servicios
+          </button>
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="Transporte">
+            🚌 Transporte
+          </button>
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="Entretenimiento">
+            🎮 Entretenimiento
+          </button>
+          <button class="category-filter-btn px-3 py-1 rounded-full text-sm border border-gray-300" data-category="Otros">
+            📦 Otros
+          </button>
+        </div>
+      </div>
+      
+      <div id="all-transactions-list" class="space-y-3">
+      </div>
+      
+      <div class="mt-6 text-center text-sm text-gray-500" id="no-transactions-message" style="display: none;">
+        No hay transacciones que coincidan con los filtros seleccionados
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal">
+    <div class="modal-content history-modal">
+      <div class="flex justify-between items-center mb-4 history-header">
+        <h3 class="text-xl font-semibold text-gray-800">Históricos Mensuales</h3>
+        <span class="close-modal cursor-pointer text-xl" data-modal="historyModal">&times;</span>
+      </div>
+      
+      <div class="mb-6">
+        <p class="text-gray-600 mb-4">Selecciona un mes para ver su historial completo:</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="months-list">
+        </div>
+      </div>
+      
+      <div id="month-details" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="text-lg font-semibold" id="selected-month">Mes Seleccionado</h4>
+          <button id="back-to-months" class="text-blue-500 hover:underline flex items-center">
+            <i class="fas fa-arrow-left mr-1"></i> Volver a meses
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-white rounded-xl shadow-sm p-4">
+            <p class="text-gray-600">Ingresos del mes</p>
+            <p class="text-xl font-bold text-green-600" id="history-income">0cop</p>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm p-4">
+            <p class="text-gray-600">Gastos del mes</p>
+            <p class="text-xl font-bold text-red-600" id="history-expenses">0cop</p>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm p-4">
+            <p class="text-gray-600">Balance del mes</p>
+            <p class="text-xl font-bold text-blue-600" id="history-balance">0cop</p>
+          </div>
+        </div>
+        
+        <h5 class="text-md font-semibold mb-3">Transacciones del mes</h5>
+        <div id="month-transactions" class="space-y-3 mb-6">
+        </div>
+        
+        <h5 class="text-md font-semibold mb-3">Metas del mes</h5>
+        <div id="month-goals" class="space-y-4">
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center text-sm text-gray-500" id="no-history-message" style="display: none;">
+        No hay historiales mensuales guardados
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos de la aplicación
+    let userData = {
+      income: 0,
+      expenses: [],
+      goals: [],
+      monthlyHistory: {}
+    };
+
+    // Categorías de gastos con iconos
+    const categories = ['Alimentación', 'Servicios', 'Transporte', 'Entretenimiento', 'Otros'];
+    const categoryIcons = {
+      'Alimentación': '🍕',
+      'Servicios': '⚡',
+      'Transporte': '🚌',
+      'Entretenimiento': '🎮',
+      'Otros': '📦'
+    };
+
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos del DOM
+      const loginForm = document.getElementById('loginForm');
+      const errorMsg = document.getElementById('errorMsg');
+      const loginPage = document.getElementById('login-page');
+      const mainPage = document.getElementById('main-page');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const resetBalanceBtn = document.getElementById('resetBalanceBtn');
+      const userName = document.getElementById('user-name');
+      const addIncomeBtn = document.getElementById('addIncomeBtn');
+      const addExpenseBtn = document.getElementById('addExpenseBtn');
+      const addGoalBtn = document.getElementById('addGoalBtn');
+      const viewAllTransactionsBtn = document.getElementById('viewAllTransactions');
+      const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+      const newMonthBtn = document.getElementById('newMonthBtn');
+      const incomeForm = document.getElementById('incomeForm');
+      const expenseForm = document.getElementById('expenseForm');
+      const goalForm = document.getElementById('goalForm');
+      const transactionsList = document.getElementById('transactions-list');
+      const goalsList = document.getElementById('goals-list');
+      const allTransactionsList = document.getElementById('all-transactions-list');
+      const noTransactionsMessage = document.getElementById('no-transactions-message');
+      
+      // Elementos del modal de histórico
+      const monthsList = document.getElementById('months-list');
+      const monthDetails = document.getElementById('month-details');
+      const selectedMonthTitle = document.getElementById('selected-month');
+      const historyIncome = document.getElementById('history-income');
+      const historyExpenses = document.getElementById('history-expenses');
+      const historyBalance = document.getElementById('history-balance');
+      const monthTransactions = document.getElementById('month-transactions');
+      const monthGoals = document.getElementById('month-goals');
+      const backToMonthsBtn = document.getElementById('back-to-months');
+      const noHistoryMessage = document.getElementById('no-history-message');
+
+      // Cargar datos guardados (si existen)
+      loadUserData();
+
+      // Inicializar gráfico
+      const expensesChart = new Chart(
+        document.getElementById('expensesChart'),
+        {
+          type: 'doughnut',
+          data: {
+            labels: categories,
+            datasets: [{
+              data: categories.map(() => 0),
+              backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        }
+      );
+
+      // Manejar el login
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const usuario = document.getElementById('usuario').value;
+        const clave = document.getElementById('clave').value;
+
+        if((usuario === 'Laura' || usuario === 'Cristhian') && clave === 'milo2608') {
+          loginPage.classList.add('hidden');
+          mainPage.classList.remove('hidden');
+          userName.textContent = usuario.charAt(0).toUpperCase() + usuario.slice(1);
+          updateUI();
+        } else {
+          errorMsg.classList.remove('hidden');
+          setTimeout(() => {
+            errorMsg.classList.add('hidden');
+          }, 3000);
+        }
+      });
+
+      // Manejar logout
+      logoutBtn.addEventListener('click', function() {
+        mainPage.classList.add('hidden');
+        loginPage.classList.remove('hidden');
+        loginForm.reset();
+      });
+
+      // Función para reiniciar solo el balance
+      resetBalanceBtn.addEventListener('click', function() {
+        if (confirm('¿Estás seguro de que deseas reiniciar el balance a cero?')) {
+          userData.income = 0;
+          userData.expenses = [];
+          saveUserData();
+          updateUI();
+          alert('El balance ha sido reiniciado correctamente.');
+        }
+      });
+
+      // Abrir modal de histórico
+      viewHistoryBtn.addEventListener('click', function() {
+        openModal('historyModal');
+        renderMonthsList();
+      });
+
+      // Función para comenzar un nuevo mes
+      newMonthBtn.addEventListener('click', startNewMonth);
+
+      // Volver a la lista de meses desde los detalles
+      backToMonthsBtn.addEventListener('click', function() {
+        monthDetails.classList.add('hidden');
+        renderMonthsList();
+      });
+
+      // Abrir modal de todas las transacciones
+      viewAllTransactionsBtn.addEventListener('click', function() {
+        openModal('transactionsModal');
+        renderAllTransactions();
+      });
+
+      // Abrir modal de nueva meta con el botón grande
+      addGoalBtn.addEventListener('click', () => openModal('goalModal'));
+
+      // Abrir otros modales
+      addIncomeBtn.addEventListener('click', () => openModal('incomeModal'));
+      addExpenseBtn.addEventListener('click', () => openModal('expenseModal'));
+
+      // Cerrar modales
+      document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+          closeModal(this.getAttribute('data-modal'));
+        });
+      });
+
+      // Registrar ingreso
+      incomeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const description = document.getElementById('income-description').value;
+        const amount = parseFloat(document.getElementById('income-amount').value);
+
+        if (amount > 0) {
+          userData.income += amount;
+          userData.expenses.push({
+            type: 'income',
+            description,
+            amount,
+            date: new Date().toLocaleDateString('es-ES')
+          });
+          saveUserData();
+          updateUI();
+          closeModal('incomeModal');
+          this.reset();
+        }
+      });
+
+      // Registrar gasto
+      expenseForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const description = document.getElementById('expense-description').value;
+        const amount = parseFloat(document.getElementById('expense-amount').value);
+        const category = document.getElementById('expense-category').value;
+
+        if (amount > 0) {
+          userData.expenses.push({
+            type: 'expense',
+            description,
+            amount,
+            category,
+            date: new Date().toLocaleDateString('es-ES')
+          });
+          saveUserData();
+          updateUI();
+          closeModal('expenseModal');
+          this.reset();
+        }
+      });
+
+      // Agregar meta
+      goalForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('goal-name').value;
+        const target = parseFloat(document.getElementById('goal-target').value);
+        const current = parseFloat(document.getElementById('goal-current').value);
+
+        if (target > 0 && current >= 0) {
+          userData.goals.push({
+            name,
+            target,
+            current,
+            progress: (current / target) * 100
+          });
+          saveUserData();
+          updateUI();
+          closeModal('goalModal');
+          this.reset();
+        }
+      });
+
+      // Filtros de transacciones
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          // Quitar clase active de todos los botones
+          document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('filter-active', 'bg-blue-500', 'text-white');
+            b.classList.add('border-gray-300');
+          });
+          
+          // Añadir clase active al botón clickeado
+          this.classList.add('filter-active', 'bg-blue-500', 'text-white');
+          this.classList.remove('border-gray-300');
+          
+          // Filtrar transacciones
+          renderAllTransactions();
+        });
+      });
+
+      // Filtros por categoría
+      document.querySelectorAll('.category-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          // Quitar clase active de todos los botones de categoría
+          document.querySelectorAll('.category-filter-btn').forEach(b => {
+            b.classList.remove('filter-active', 'bg-blue-500', 'text-white');
+            b.classList.add('border-gray-300');
+          });
+          
+          // Añadir clase active al botón clickeado
+          this.classList.add('filter-active', 'bg-blue-500', 'text-white');
+          this.classList.remove('border-gray-300');
+          
+          // Filtrar transacciones
+          renderAllTransactions();
+        });
+      });
+
+      // Función para renderizar todas las transacciones en el modal
+      function renderAllTransactions() {
+        allTransactionsList.innerHTML = '';
+        noTransactionsMessage.style.display = 'none';
+        
+        // Obtener filtros activos
+        const typeFilter = document.querySelector('.filter-btn.filter-active').getAttribute('data-filter');
+        const categoryFilter = document.querySelector('.category-filter-btn.filter-active').getAttribute('data-category');
+        
+        // Filtrar transacciones
+        let filteredTransactions = [...userData.expenses].reverse();
+        
+        if (typeFilter !== 'all') {
+          filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+        }
+        
+        if (categoryFilter !== 'all') {
+          filteredTransactions = filteredTransactions.filter(t => 
+            t.type === 'expense' ? t.category === categoryFilter : true
+          );
+        }
+        
+        // Mostrar mensaje si no hay transacciones
+        if (filteredTransactions.length === 0) {
+          noTransactionsMessage.style.display = 'block';
+          return;
+        }
+        
+        // Renderizar transacciones
+        filteredTransactions.forEach(transaction => {
+          const transactionEl = document.createElement('div');
+          transactionEl.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg transaction-item';
+          
+          const iconClass = transaction.type === 'income'
+            ? 'fa-arrow-up-right text-green-600 bg-green-100'
+            : 'fa-arrow-down-left text-red-600 bg-red-100';
+          
+          const categoryIcon = transaction.type === 'expense' ? categoryIcons[transaction.category] + ' ' : '';
+          const categoryInfo = transaction.type === 'expense' ? 
+            `<span class="text-xs text-gray-500">${transaction.category}</span>` : '';
+          
+          transactionEl.innerHTML = `
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 ${iconClass.split(' ')[2]}">
+                <i class="fas ${iconClass.split(' ')[0]} ${iconClass.split(' ')[1]}"></i>
+              </div>
+              <div>
+                <p class="font-medium text-gray-800">${categoryIcon}${transaction.description}</p>
+                <p class="text-sm text-gray-600">${transaction.date}</p>
+                ${categoryInfo}
+              </div>
+            </div>
+            <span class="${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'} font-semibold">
+              ${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}
+            </span>
+          `;
+          allTransactionsList.appendChild(transactionEl);
+        });
+      }
+
+      // FUNCIÓN CORREGIDA: Guardar el mes actual en el historial
+      function saveCurrentMonth() {
+        const now = new Date();
+        // Crear una clave única para el mes usando año y mes (formato YYYY-MM)
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        
+        console.log("Guardando mes:", monthKey);
+        
+        // Guardar datos actuales en el historial - CORREGIDO
+        userData.monthlyHistory[monthKey] = {
+          income: userData.income,
+          expenses: JSON.parse(JSON.stringify(userData.expenses)), // Clon profundo
+          goals: JSON.parse(JSON.stringify(userData.goals)), // Clon profundo
+          timestamp: new Date().toISOString()
+        };
+        
+        saveUserData();
+        console.log("Mes guardado correctamente. Historial:", userData.monthlyHistory);
+      }
+      
+      // FUNCIÓN CORREGIDA: Cambiar de mes (nuevo mes)
+      function startNewMonth() {
+        if (confirm('¿Estás seguro de que deseas comenzar un nuevo mes? Se guardará el historial del mes actual.')) {
+          // Verificar que hay datos que guardar
+          if (userData.income > 0 || userData.expenses.length > 0 || userData.goals.length > 0) {
+            saveCurrentMonth();
+          }
+          
+          // Reiniciar datos del mes actual
+          userData.income = 0;
+          userData.expenses = [];
+          userData.goals = [];
+          
+          saveUserData();
+          updateUI();
+          alert('¡Nuevo mes iniciado! El historial del mes anterior ha sido guardado.');
+        }
+      }
+
+      // FUNCIÓN CORREGIDA: Renderizar la lista de meses disponibles
+      function renderMonthsList() {
+        monthsList.innerHTML = '';
+        noHistoryMessage.style.display = 'none';
+        monthDetails.classList.add('hidden');
+        
+        const monthlyKeys = Object.keys(userData.monthlyHistory);
+        
+        console.log("Meses en historial:", monthlyKeys);
+        
+        if (monthlyKeys.length === 0) {
+          noHistoryMessage.style.display = 'block';
+          return;
+        }
+        
+        // Ordenar meses de más reciente a más antiguo
+        monthlyKeys.sort((a, b) => {
+          // Convertir las claves a fechas para comparar
+          const [aYear, aMonth] = a.split('-').map(Number);
+          const [bYear, bMonth] = b.split('-').map(Number);
+          
+          if (aYear !== bYear) return bYear - aYear;
+          return bMonth - aMonth;
+        });
+        
+        monthlyKeys.forEach(monthKey => {
+          const monthData = userData.monthlyHistory[monthKey];
+          // Convertir la clave a fecha legible
+          const [year, month] = monthKey.split('-');
+          const monthDate = new Date(year, month - 1);
+          const monthName = monthDate.toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'long' 
+          });
+          
+          const totalExpenses = monthData.expenses
+            .filter(e => e.type === 'expense')
+            .reduce((sum, expense) => sum + expense.amount, 0);
+          
+          const balance = monthData.income - totalExpenses;
+          
+          const monthEl = document.createElement('div');
+          monthEl.className = 'month-card bg-white rounded-xl shadow-sm p-4';
+          monthEl.innerHTML = `
+            <h4 class="font-semibold text-gray-800 mb-2">${monthName}</h4>
+            <div class="flex justify-between text-sm mb-2">
+              <span class="text-green-600">+${formatCurrency(monthData.income)}</span>
+              <span class="text-red-600">-${formatCurrency(totalExpenses)}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm ${balance >= 0 ? 'text-green-600' : 'text-red-600'}">
+                Balance: ${formatCurrency(balance)}
+              </span>
+              <div class="flex space-x-2">
+                <button class="text-blue-500 text-sm view-month-details" data-month="${monthKey}">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="text-red-500 text-sm delete-month" data-month="${monthKey}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          
+          monthsList.appendChild(monthEl);
+        });
+        
+        // Añadir event listeners a los botones de ver detalles
+        document.querySelectorAll('.view-month-details').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const monthKey = this.getAttribute('data-month');
+            showMonthDetails(monthKey);
+          });
+        });
+        
+        // Añadir event listeners a los botones de eliminar mes
+        document.querySelectorAll('.delete-month').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const monthKey = this.getAttribute('data-month');
+            deleteMonth(monthKey);
+          });
+        });
+      }
+      
+      // FUNCIÓN NUEVA: Eliminar un mes del historial
+      function deleteMonth(monthKey) {
+        // Convertir la clave a fecha legible para el mensaje de confirmación
+        const [year, month] = monthKey.split('-');
+        const monthDate = new Date(year, month - 1);
+        const monthName = monthDate.toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'long' 
+        });
+        
+        if (confirm(`¿Estás seguro de que deseas eliminar el historial de ${monthName}? Esta acción no se puede deshacer.`)) {
+          // Eliminar el mes del historial
+          delete userData.monthlyHistory[monthKey];
+          
+          // Guardar los cambios
+          saveUserData();
+          
+          // Actualizar la interfaz
+          renderMonthsList();
+          
+          alert(`El historial de ${monthName} ha sido eliminado correctamente.`);
+        }
+      }
+      
+      // FUNCIÓN CORREGIDA: Mostrar los detalles de un mes específico
+      function showMonthDetails(monthKey) {
+        const monthData = userData.monthlyHistory[monthKey];
+        // Convertir la clave a fecha legible
+        const [year, month] = monthKey.split('-');
+        const monthDate = new Date(year, month - 1);
+        const monthName = monthDate.toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'long' 
+        });
+        
+        // Actualizar título
+        selectedMonthTitle.textContent = monthName;
+        
+        // Calcular totales
+        const totalExpenses = monthData.expenses
+          .filter(e => e.type === 'expense')
+          .reduce((sum, expense) => sum + expense.amount, 0);
+        
+        const balance = monthData.income - totalExpenses;
+        
+        // Actualizar resumen
+        historyIncome.textContent = formatCurrency(monthData.income);
+        historyExpenses.textContent = formatCurrency(totalExpenses);
+        historyBalance.textContent = formatCurrency(balance);
+        
+        // Mostrar transacciones
+        monthTransactions.innerHTML = '';
+        if (monthData.expenses.length === 0) {
+          monthTransactions.innerHTML = '<p class="text-gray-500 text-center py-4">No hay transacciones este mes</p>';
+        } else {
+          monthData.expenses.forEach(transaction => {
+            const transactionEl = document.createElement('div');
+            transactionEl.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            
+            const iconClass = transaction.type === 'income'
+              ? 'fa-arrow-up-right text-green-600 bg-green-100'
+              : 'fa-arrow-down-left text-red-600 bg-red-100';
+            const categoryIcon = transaction.type === 'expense' ? categoryIcons[transaction.category] + ' ' : '';
+            
+            transactionEl.innerHTML = `
+              <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 ${iconClass.split(' ')[2]}">
+                  <i class="fas ${iconClass.split(' ')[0]} ${iconClass.split(' ')[1]}"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">${categoryIcon}${transaction.description}</p>
+                  <p class="text-sm text-gray-600">${transaction.date}</p>
+                </div>
+              </div>
+              <span class="${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'} font-semibold">
+                ${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}
+              </span>
+            `;
+            monthTransactions.appendChild(transactionEl);
+          });
+        }
+        
+        // Mostrar metas
+        monthGoals.innerHTML = '';
+        if (monthData.goals.length === 0) {
+          monthGoals.innerHTML = '<p class="text-gray-500 text-center py-4">No había metas este mes</p>';
+        } else {
+          monthData.goals.forEach(goal => {
+            const progress = (goal.current / goal.target) * 100;
+            const progressColor = progress >= 100 ? 'bg-green-500' : (progress >= 50 ? 'bg-blue-500' : 'bg-yellow-500');
+            const progressText = progress >= 100 ? 'Completado' : `${progress.toFixed(0)}%`;
+            
+            const goalEl = document.createElement('div');
+            goalEl.className = 'border border-gray-200 rounded-xl p-4';
+            goalEl.innerHTML = `
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <h4 class="font-semibold text-gray-800">${goal.name}</h4>
+                  <p class="text-sm text-gray-600">Meta: ${formatCurrency(goal.target)}</p>
+                </div>
+                <span class="px-2 py-1 text-xs rounded-full ${progress >= 100 ? 'bg-green-100 text-green-800' : (progress >= 50 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800')}">${progressText}</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div class="h-2 rounded-full ${progressColor}" style="width: ${Math.min(progress, 100)}%"></div>
+              </div>
+              <p class="text-sm text-gray-600">${formatCurrency(goal.current)} ahorrados</p>
+            `;
+            monthGoals.appendChild(goalEl);
+          });
+        }
+        
+        // Mostrar detalles y ocultar lista
+        document.getElementById('months-list').innerHTML = '';
+        monthDetails.classList.remove('hidden');
+      }
+
+      // Actualizar la interfaz de usuario
+      function updateUI() {
+        // Calcular total de gastos por categoría
+        const expensesByCategory = {};
+        categories.forEach(cat => expensesByCategory[cat] = 0);
+
+        let totalExpenses = 0;
+        userData.expenses.forEach(expense => {
+          if (expense.type === 'expense') {
+            totalExpenses += expense.amount;
+            expensesByCategory[expense.category] += expense.amount;
+          }
+        });
+
+        // Actualizar resumen
+        document.getElementById('total-income').textContent = formatCurrency(userData.income);
+        document.getElementById('total-expenses').textContent = formatCurrency(totalExpenses);
+        document.getElementById('balance').textContent = formatCurrency(userData.income - totalExpenses);
+
+        // Actualizar gráfico
+        expensesChart.data.datasets[0].data = categories.map(cat => expensesByCategory[cat]);
+        expensesChart.update();
+
+        // Actualizar transacciones
+        transactionsList.innerHTML = '';
+        const recentTransactions = userData.expenses.slice(-5).reverse();
+
+        if (recentTransactions.length === 0) {
+          transactionsList.innerHTML = '<p class="text-gray-500 text-center py-4">No hay transacciones registradas</p>';
+        } else {
+          recentTransactions.forEach(transaction => {
+            const transactionEl = document.createElement('div');
+            transactionEl.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+
+            const iconClass = transaction.type === 'income'
+              ? 'fa-arrow-up-right text-green-600 bg-green-100'
+              : 'fa-arrow-down-left text-red-600 bg-red-100';
+            const categoryIcon = transaction.type === 'expense' ? categoryIcons[transaction.category] + ' ' : '';
+
+            transactionEl.innerHTML = `
+              <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 ${iconClass.split(' ')[2]}">
+                  <i class="fas ${iconClass.split(' ')[0]} ${iconClass.split(' ')[1]}"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800">${categoryIcon}${transaction.description}</p>
+                  <p class="text-sm text-gray-600">${transaction.date}</p>
+                </div>
+              </div>
+              <span class="${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'} font-semibold">
+                ${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}
+              </span>
+            `;
+            transactionsList.appendChild(transactionEl);
+          });
+        }
+
+        // Actualizar metas
+        goalsList.innerHTML = '';
+        
+        if (userData.goals.length === 0) {
+          goalsList.innerHTML = `
+            <div class="col-span-3 border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center">
+              <p class="text-gray-700 mb-4">No tienes metas de ahorro aún</p>
+              <p class="text-sm text-gray-500">Haz clic en el botón "Nueva Meta" para crear tu primera meta</p>
+            </div>
+          `;
+        } else {
+          userData.goals.forEach((goal, index) => {
+            const progress = (goal.current / goal.target) * 100;
+            const progressColor = progress >= 100 ? 'bg-green-500' : (progress >= 50 ? 'bg-blue-500' : 'bg-yellow-500');
+            const progressText = progress >= 100 ? 'Completado' : `${progress.toFixed(0)}%`;
+
+            const goalEl = document.createElement('div');
+            goalEl.className = 'border border-gray-200 rounded-2xl p-6 relative';
+            goalEl.innerHTML = `
+              <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 delete-goal" data-index="${index}">
+                <i class="fas fa-times"></i>
+              </button>
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="font-semibold text-gray-800">${goal.name}</h3>
+                  <p class="text-sm text-gray-600">Meta: ${formatCurrency(goal.target)}</p>
+                </div>
+                <span class="px-2 py-1 text-xs rounded-full ${progress >= 100 ? 'bg-green-100 text-green-800' : (progress >= 50 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800')}">${progressText}</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div class="h-2 rounded-full progress-bar ${progressColor}" style="width: ${Math.min(progress, 100)}%"></div>
+              </div>
+              <p class="text-sm text-gray-600">${formatCurrency(goal.current)} ahorrados</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="flex-1 bg-blue-100 text-blue-700 py-1 rounded add-goal-amount" data-index="${index}">
+                  <i class="fas fa-plus mr-1"></i> Añadir
+                </button>
+                <button class="flex-1 bg-gray-100 text-gray-700 py-1 rounded edit-goal" data-index="${index}">
+                  <i class="fas fa-edit mr-1"></i> Editar
+                </button>
+              </div>
+            `;
+            goalsList.appendChild(goalEl);
+          });
+
+          // Agregar event listeners a los botones de las metas
+          document.querySelectorAll('.delete-goal').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const index = this.getAttribute('data-index');
+              if (confirm('¿Estás seguro de que deseas eliminar esta meta?')) {
+                userData.goals.splice(index, 1);
+                saveUserData();
+                updateUI();
+              }
+            });
+          });
+
+          document.querySelectorAll('.add-goal-amount').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const index = this.getAttribute('data-index');
+              const amount = prompt('¿Cuánto deseas añadir a esta meta?');
+              if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+                userData.goals[index].current += parseFloat(amount);
+                userData.goals[index].progress = (userData.goals[index].current / userData.goals[index].target) * 100;
+                saveUserData();
+                updateUI();
+              }
+            });
+          });
+
+          document.querySelectorAll('.edit-goal').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const index = this.getAttribute('data-index');
+              const goal = userData.goals[index];
+              
+              document.getElementById('goal-name').value = goal.name;
+              document.getElementById('goal-target').value = goal.target;
+              document.getElementById('goal-current').value = goal.current;
+              
+              openModal('goalModal');
+              
+              // Reemplazar la meta existente al guardar
+              goalForm.onsubmit = function(e) {
+                e.preventDefault();
+                const name = document.getElementById('goal-name').value;
+                const target = parseFloat(document.getElementById('goal-target').value);
+                const current = parseFloat(document.getElementById('goal-current').value);
+                
+                if (target > 0 && current >= 0) {
+                  userData.goals[index] = {
+                    name,
+                    target,
+                    current,
+                    progress: (current / target) * 100
+                  };
+                  saveUserData();
+                  updateUI();
+                  closeModal('goalModal');
+                  goalForm.reset();
+                }
+              };
+            });
+          });
+        }
+      }
+
+      // Formatear moneda
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0
+        }).format(amount);
+      }
+
+      // Guardar datos en localStorage
+      function saveUserData() {
+        localStorage.setItem('ghogartUserData', JSON.stringify(userData));
+      }
+
+      // Cargar datos desde localStorage
+      function loadUserData() {
+        const savedData = localStorage.getItem('ghogartUserData');
+        if (savedData) {
+          userData = JSON.parse(savedData);
+          // Asegurarse de que monthlyHistory existe
+          if (!userData.monthlyHistory) {
+            userData.monthlyHistory = {};
+          }
+        }
+      }
+
+      // Función para abrir modales
+      function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'block';
+      }
+
+      // Función para cerrar modales
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+      }
+
+      // Cerrar modal al hacer clic fuera del contenido
+      window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+          e.target.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
